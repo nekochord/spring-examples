@@ -1,7 +1,13 @@
 ---
 spring:
   datasource:
-    url: jdbc:h2:mem:example
-    username: user
-    password: pass
-    driver-class-name: org.h2.Driver
+    primary:
+      jdbc-url: jdbc:h2:mem:primary
+      username: user
+      password: pass
+      driver-class-name: org.h2.Driver
+    second:
+      jdbc-url: jdbc:h2:mem:second
+      username: user
+      password: pass
+      driver-class-name: org.h2.Driver
