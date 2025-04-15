@@ -8,7 +8,7 @@ import java.time.Instant;
 
 @Data
 @Document("messages")
-public class Message {
+public class RoomMessage {
     @Id
     private String id;
     private String roomId;

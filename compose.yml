@@ -9,11 +9,9 @@ services:
       POSTGRES_PASSWORD: pass
   mongo:
     image: mongo
+    command: --replSet rs0
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: user
-      MONGO_INITDB_ROOT_PASSWORD: pass
   redis:
     image: redis:7.2.4-alpine
     ports:

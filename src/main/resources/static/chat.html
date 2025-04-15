@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .container { display: flex; height: 100vh; }
+        .sidebar { width: 25%; border-right: 1px solid #ccc; padding: 1em; overflow-y: auto; }
+        .chat-window { width: 75%; padding: 1em; display: flex; flex-direction: column; }
+        .messages { flex: 1; overflow-y: auto; border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
+        .message-input { display: flex; gap: 0.5em; }
+        .message-input input { flex: 1; padding: 0.5em; }
+        .room-item { cursor: pointer; padding: 0.5em; border-bottom: 1px solid #eee; }
+        .room-item:hover { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar" id="roomList">
+        <h3>Rooms</h3>
+    </div>
+    <div class="chat-window">
+        <div class="messages" id="messageList"></div>
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedRoomId = null;
+    let ws = new WebSocket("ws://localhost:8080/channel");
+
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'MESSAGE' && msg.roomId === selectedRoomId) {
+            appendMessage(`[New] ${msg.message}`);
+        }
+    };
+
+    function fetchRooms() {
+        fetch('/rooms/all')
+            .then(res => res.json())
+            .then(rooms => {
+                const roomList = document.getElementById('roomList');
+                roomList.innerHTML = '<h3>Rooms</h3>';
+                rooms.forEach(room => {
+                    const div = document.createElement('div');
+                    div.className = 'room-item';
+                    div.innerText = room.name;
+                    div.onclick = () => selectRoom(room);
+                    roomList.appendChild(div);
+                });
+            });
+    }
+
+    function selectRoom(room) {
+        selectedRoomId = room.id;
+        document.getElementById('messageList').innerHTML = '';
+
+        ws.send(JSON.stringify({ type: 'SUBSCRIBE', roomId: room.id }));
+
+        fetch(`/rooms/${room.id}/messages`)
+            .then(res => res.json())
+            .then(messages => {
+                messages.sort((a, b) => new Date(a.time) - new Date(b.time));
+                messages.forEach(msg => appendMessage(msg.content));
+            });
+    }
+
+    function appendMessage(content) {
+        const msgDiv = document.createElement('div');
+        msgDiv.innerText = content;
+        document.getElementById('messageList').appendChild(msgDiv);
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!text || !selectedRoomId) return;
+
+        const message = {
+            type: 'MESSAGE',
+            roomId: selectedRoomId,
+            message: text
+        };
+
+        ws.send(JSON.stringify(message));
+        appendMessage(`[You] ${text}`);
+        input.value = '';
+    }
+
+    fetchRooms();
+</script>
+</body>
+</html>
