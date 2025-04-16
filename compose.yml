@@ -1,25 +1,20 @@
+#  rs.initiate({
+#  _id: "example",
+#  members: [
+#    {_id: 0, host: "mongo1"},
+#    {_id: 1, host: "mongo2"},
+#  ]
+#  })
 services:
-  postgres:
-    image: postgres:17-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: example
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-  mongo:
+  mongo1:
     image: mongo
-    command: --replSet rs0
+    command: --replSet example
     ports:
       - "27017:27017"
-  redis:
-    image: redis:7.2.4-alpine
+  mongo2:
+    image: mongo
+    command: --replSet example
     ports:
-      - "6379:6379"
-  rabbitmq:
-    image: rabbitmq:4-management-alpine
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "27018:27017"
 
 
